@@ -1,0 +1,18 @@
+Three Methods to extended classes
+
+1. Inheritance
+
+The current syntax when writing classes, includes the (object) as part of creating the
+class itself.
+Example:
+
+class Foo(object):
+    def bar(self):
+        print("bar")
+
+foo = Foo()
+foo.bar()
+
+When creating a child class, include the base class within the '()'.
+
+class Kid(Foo):

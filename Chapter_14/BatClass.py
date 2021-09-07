@@ -7,3 +7,8 @@ class Bat:
         self.y_restricted_position = y
         self.bat_image = pygame.image.load(path_to_bat_image)
 
+    def update(self, game_time):
+        pass
+
+
+# TODO: update Bat class
