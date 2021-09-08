@@ -1,0 +1,145 @@
+Three Methods to extended classes
+
+1. Inheritance
+
+The current syntax when writing classes, includes the (object) as part of creating the
+class itself.
+Example:
+
+class Foo(object):
+    def bar(self):
+        print("bar")
+
+foo = Foo()
+foo.bar()
+
+When creating a child class, include the base class within the '()'.
+
+class Kid(Foo):
+
+It is very important to add the super(<parent object>, self).__init__()
+
+This would look like this.
+
+class Foo(object):
+    x = 0
+    def __init__(self):
+    print("Foo Constructor")
+    self.x = 10
+
+    def printNumber(self):
+        print(self.x)
+
+class Bar(Foo):
+    def __init__(self):
+        super(Bar, self).__init__()
+        print("Bar constructor")
+
+2. Composition
+
+This is when a class contains one or more objects inside another. The container object controls the
+creating and deletion of the contained objects.  In the below example the Alien class objects are ONLY
+created within the AlienSwarm class.
+
+The AlienSwarm class acts a the container for all of the individual Alien objects created within it.
+The AlienSwarm acts as the frame for the Alien class, the AlienSwarm is composed of the individual Alien
+objects.
+
+This how composition works, in extending a class.
+
+class Alien(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def draw(self):
+        pass
+
+
+class AlienSwarm:
+    def __init__(self, number_of_Aliens):
+        self.swarm = []
+        y = 0
+        x = 24
+        for each in range(number_of_Aliens):
+            alien = Alien(x, y)
+            self.swarm.append(alien)
+            x += 24
+            if x > 640:
+                x = 0
+                y += 24
+
+
+    def debugPrint(self):
+        for alf in self.swarm:
+            #  Checking the coordinates of each Alien object
+            print(f"x = {alf.x}, y = {alf.y}")
+
+    def isHit(self, x, y):
+        # Collision detection for alien swarm.
+        alien_to_remove = None
+        for alf in self.swarm:
+            print(f"Checking alf at ({alf.x}, {alf.y}))
+            if x >= alf.x and x <= alf.x + 24 and y >= alf.y and y is <= alf.y + 24:
+                print("Alf is hit! Alien is going down!")
+                alien_to_remove = alf
+                break
+
+        if alien_to_remove != None:
+            self.swarm.remove(alien_to_remove)
+
+            return True
+
+        return False
+
+
+
+swarm = AlienSwarm(5)
+swarm.debugPrint()
+
+
+3. Aggregation
+
+    Similar to Composition, but in this case creation and destruction/deletion of the contained class
+    is done outside of the container class itself.
+
+class Bullet:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class Player:
+    def __init__(self):
+        self.bullets = [Bullet(24, 8)]
+        self.score = 0
+
+    def getBullets(self):
+        return self.bullets
+
+    def removeBullets(self, bullet):
+        self.bullets.remove(bullet)
+
+
+class Collision:
+    def __init__(self, player, swarm):
+        self.player = player
+        self.swarm = swarm
+
+    def checkCollision(self):
+        bulletKill = []
+
+        for bullet in player.getBullets():
+            if swarm.isHit(bullet.x, bullet.y):
+                bulletKill.append(bullet)
+                continue
+
+        for each in bulletKill:
+            self.player.score += 10
+            print(f"Score: {self.player.score")
+            self.player.removeBullet(each)
+
+
+swarm = AlienSwarm(5)
+player = Player()
+collision = Collision(player, swarm)
+collision.checkCollisions()
