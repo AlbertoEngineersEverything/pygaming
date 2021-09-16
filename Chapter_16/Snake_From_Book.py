@@ -61,7 +61,11 @@ def head_hits_wall(map, gamedata):
 
 
 def draw_data(surface, gamedata):
-    pass
+    text = "Lives = {0}, Level = {1}"
+    info = text.format(gamedata.lives, gamedata.level)
+    text = font.render(info, 0, (255, 255, 255))
+    textpos = text.get_rect(centerx=surface.get_width() / 2, top=32)
+    surface.blit(text, textpos)
 
 
 def draw_game_over(surface):
@@ -79,15 +83,74 @@ def draw_game_over(surface):
 
 
 def draw_walls(surface, img, map):
-    pass
+    row = 0
+    for line in map:
+        col = 0
+        for char in line:
+            if char == '1':
+                imgRect = img.get_rect()
+                imgRect.left = col * 16
+                imgRect.top = row * 16
+                surface.blit(img, imgRect)
+            col += 1
+        row += 1
 
 
 def draw_snake(surface, img, gamedata):
-    pass
+    first = True    # First is referancing the head of the snake
+    right = 0       # Directions are associated with the numbers
+    left = 1        # as the number will be multiplied by 16, will
+    up = 2          # specify the section of the sprite sheet.
+    down = 3
+    for b in gamedata.blocks:
+        dest = (b.x * 16, b.y * 16, 16, 16)
+
+        if first:
+            first = False
+            src = (((gamedata.direction * 2) + gamedata.frame) * 16, 0, 16, 16)
+        else:
+            src = (8 * 16, 0, 16, 16)
+
+        surface.blit(img, dest, src)
 
 
 def update_game(gamedata, gametime):
-    pass
+    gamedata.tick -= gametime
+    head = gamedata.blocks[0]
+
+    if gamedata.tick < 0:
+        gamedata.tick += gamedata.speed
+        gamedata.frame += 1
+        gamedata.frame %= 2
+
+        if gamedata.direction == 0:
+            move = (1, 0)
+        elif gamedata.direction == 1:
+            move = (-1, 0)
+        elif gamedata.direction == 2:
+            move = (0, -1)
+        else:
+            move = (0, 1)
+
+        newpos = Position(head.x + move[0], head.y + move[1])
+
+        first = True
+        for b in gamedata.blocks:
+            temp = Position(b.x, b.y)
+            b.x = newpos.x
+            b.y = newpos.y
+            newpos = Position(temp.x, temp.y)
+
+    keys = pygame.key.get_pressed()
+
+    if keys[K_RIGHT] and gamedata.direction != 1:
+        gamedata.direction = 0
+    elif keys[K_LEFT] and gamedata.direction != 0:
+        gamedata.direction = 1
+    elif keys[K_UP] and gamedata.direction != 3:
+        gamedata.direction = 2
+    elif keys[K_DOWN] and gamedata.direction != 2:
+        gamedata.direction = 3
 
 
 def load_images():
@@ -121,6 +184,13 @@ while not quitGame:
         rrect.top = data.berry.y * 16       # Y coord mult. by 16 because each cell 16x16
 
     # Do update stuff here
+        update_game(data, fpsClock.get_time())
+
+        crashed = head_hits_wall(snakemap, data) or head_hits_body(data)
+
+        if crashed:
+            lose_life(data)
+            position_berry(data)
 
         isPlaying = (data.lives > 0)        # Confirms that if there are lives left, playing continues
                                             # This changes the original False value for isPlaying
