@@ -38,6 +38,7 @@ class GameData(object):
 
 
 def lose_life(gamedata):
+    # gamedata.lives -= 1
     pass
 
 
@@ -46,7 +47,9 @@ def position_berry(gamedata):
 
 
 def load_map_file(file_name):
-    return None
+    with open(file_name, 'r') as f:
+        content = f.readlines()
+    return content
 
 
 def head_hits_body(gamedata):
@@ -62,7 +65,17 @@ def draw_data(surface, gamedata):
 
 
 def draw_game_over(surface):
-    pass
+    text1 = font.render("GAME OVER", True, (255, 255, 255))
+    text2 = font.render("SPACE BAR to play OR close the window to QUIT", True, (255, 255, 255))
+    #  The .render method creates a PyGame surface that will fit the text exactly
+    #  The parameters for the .render(<String to display>, <anti-alaising>, <color>)
+    cx = surface.get_width() / 2
+    cy = surface.get_height() / 2
+    textpos1 = text1.get_rect(centerx=cx, top=cy - 48)
+    textpos2 = text2.get_rect(centerx=cx, top=cy)
+
+    surface.blit(text1, textpos1)
+    surface.blit(text2, textpos2)
 
 
 def draw_walls(surface, img, map):
@@ -78,6 +91,58 @@ def update_game(gamedata, gametime):
 
 
 def load_images():
-    return {}
+    wall = pygame.image.load(r'Assets_snake\wall.png')
+    raspberry = pygame.image.load(r'Assets_snake\berry.png')
+    snake = pygame.image.load(r'Assets_snake\snake.png')
+
+    return {'wall': wall, 'berry': raspberry, 'snake': snake}
 
 
+images = load_images()
+images['berry'].set_colorkey((255, 0, 255))
+
+snakemap = load_map_file(r'Assets_snake\map.txt')
+data = GameData()
+quitGame = False
+isPlaying = False
+
+while not quitGame:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+
+    if isPlaying:
+        x = random.randint(1, 38)
+        y = random.randint(1, 38)
+
+        rrect = images['berry'].get_rect()
+        rrect.left = data.berry.x * 16      # X coord mult. by 16 because each cell 16x16
+        rrect.top = data.berry.y * 16       # Y coord mult. by 16 because each cell 16x16
+
+    # Do update stuff here
+
+        isPlaying = (data.lives > 0)        # Confirms that if there are lives left, playing continues
+                                            # This changes the original False value for isPlaying
+        if isPlaying:
+            surface.fill((0, 0, 0))
+
+            # Do drawing stuff here
+            draw_walls(surface, images['wall'], snakemap)
+            surface.blit(images['berry'], rrect)
+            draw_snake(surface, images['snake'], data)
+            draw_data(surface, data)
+
+    else:
+        # Add the message that the game is over
+        # Give the player the options to press the 'space bar' to play again
+        keys = pygame.key.get_pressed()
+        if keys[K_SPACE]:
+            isPlaying = True            # Resets isPlaying to True so the came can continue
+            data = None                 # Deletes the data object
+            data = GameData()           # Recreates the GameData default values
+
+        draw_game_over(surface)
+
+    pygame.display.update()
+    fpsClock.tick(30)
