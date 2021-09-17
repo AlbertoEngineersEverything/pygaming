@@ -20,7 +20,7 @@ class GameData(object):
         self.lives = 3          # Lives: number of attempts
         self.isDead = False     # isDead: set true when snake's head touches snake or wall
         self.blocks = []        # blocks: The list of blocks that make up snake body
-        self.tick = 250         # tick: The running total used to count down to the next animation frame. In milliseconds
+        self.tick = 250         # tick: Total used to count down to the next animation frame. In milliseconds
         self.level = 1          # level: Current level of difficulty
         self.berryCount = 0     # berrycount: Number of berries consumed by the snake in current level
         self.segments = 1       # segments: The number of segments added when berry is consumed
@@ -38,12 +38,29 @@ class GameData(object):
 
 
 def lose_life(gamedata):
-    # gamedata.lives -= 1
-    pass
+    gamedata.lives -= 1         # subtraction of 1 life
+    gamedata.direction = 0      # resets the direction fo the snake
+    gamedata.blocks[:] = []     # when the player loses a life, the length of the snake is reset
+
+    gamedata.blocks.append(Position(20, 15))    # adds 2 blocks to the snake's body
+    gamedata.blocks.append(Position(19, 15))
 
 
 def position_berry(gamedata):
-    pass
+    bx = random.randint(1, 38)
+    by = random.randint(1, 28)
+    found = True
+
+    while found:
+        found = False
+        for b in gamedata.blocks:
+            if b.x == bx and b.y == by:
+                found = True
+        if found:
+            bx = random.randint(1, 38)
+            by = random.randint(1, 28)
+
+    gamedata.berry = Position(bx, by)
 
 
 def load_map_file(file_name):
@@ -53,10 +70,24 @@ def load_map_file(file_name):
 
 
 def head_hits_body(gamedata):
-    return False
+    head = gamedata.blocks[0]
+    for b in gamedata.blocks:
+        if b != head:
+            if b.x == head.x and b.y == head.y:
+                return True
+        return False
 
 
 def head_hits_wall(map, gamedata):
+    row = 0
+    for line in map:
+        col = 0
+        for char in line:
+            if char == '1':
+                if gamedata.blocks[0].x == col and gamedata.blocks[0].y == row:
+                    return True
+            col += 1
+        row += 1
     return False
 
 
@@ -151,6 +182,29 @@ def update_game(gamedata, gametime):
         gamedata.direction = 2
     elif keys[K_DOWN] and gamedata.direction != 2:
         gamedata.direction = 3
+
+    if head.x == gamedata.berry.x and head.y == gamedata.berry.y:
+        lastIdx = len(gamedata.blocks) - 1
+        for index in range(gamedata.segments):
+            blockX = gamedata.blocks[lastIdx].x
+            blockY = gamedata.blocks[lastIdx].y
+            gamedata.blocks.append(Position(blockX, blockY))
+
+            bx = random.randint(1, 38)
+            by = random.randint(1, 28)
+            gamedata.berry = Position(bx, by)
+            gamedata.berryCount += 1
+
+            if gamedata.berryCount == 10:
+                gamedata.berryCount = 0
+                gamedata.speed -= 25
+                gamedata.level += 1
+                gamedata.segments *= 2
+                if gamedata.segments > 64:
+                    gamedata.segments = 64
+
+                if gamedata.speed < 100:
+                    gamedata.speed = 100
 
 
 def load_images():
